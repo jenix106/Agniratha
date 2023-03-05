@@ -27,24 +27,27 @@ namespace Agniratha
         public override void Update()
         {
             base.Update();
-            isInCombat = false;
-            foreach (Creature creature in Creature.allActive)
+            if (!WaveSpawner.TryGetRunningInstance(out WaveSpawner spawner))
             {
-                if (creature?.brain?.currentTarget != null && !creature.isPlayer && !creature.isKilled && (creature.brain.currentTarget.isPlayer || creature.brain.currentTarget.faction == Player.local.creature.faction))
+                isInCombat = false;
+                foreach (Creature creature in Creature.allActive)
                 {
-                    isInCombat = true;
-                    if (battleMusic.isPlaying) return;
-                    battleMusic.Play();
-                    dayMusic.Pause();
-                    nightMusic.Pause();
+                    if (creature?.brain?.currentTarget != null && !creature.isPlayer && !creature.isKilled && (creature.brain.currentTarget.isPlayer || creature.brain.currentTarget.faction == Player.local.creature.faction))
+                    {
+                        isInCombat = true;
+                        if (battleMusic.isPlaying) return;
+                        battleMusic.Play();
+                        dayMusic.Pause();
+                        nightMusic.Pause();
+                    }
                 }
+                if (isInCombat || !battleMusic.isPlaying) return;
+                uniqueBattleMusic.Stop();
+                battleMusic.Stop();
+                battleMusic.mute = false;
+                dayMusic.UnPause();
+                nightMusic.UnPause();
             }
-            if (isInCombat || !battleMusic.isPlaying) return;
-            uniqueBattleMusic.Stop();
-            battleMusic.Stop();
-            battleMusic.mute = false;
-            dayMusic.UnPause();
-            nightMusic.UnPause();
         }
     }
 }

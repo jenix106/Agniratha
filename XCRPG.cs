@@ -17,30 +17,33 @@ namespace Agniratha
         bool isFightingUnique;
         public override IEnumerator OnLoadCoroutine()
         {
-            battleMusic = level.customReferences[0].transforms.Find(match => match.name == "BattleMusic").GetComponent<AudioSource>();
-            uniqueBattleMusic = level.customReferences[0].transforms.Find(match => match.name == "UniqueBattleMusic").GetComponent<AudioSource>();
+            battleMusic = level.customReferences.Find(match => match.name == "Music").transforms.Find(match => match.name == "BattleMusic").GetComponent<AudioSource>();
+            uniqueBattleMusic = level.customReferences.Find(match => match.name == "Music").transforms.Find(match => match.name == "UniqueBattleMusic").GetComponent<AudioSource>();
             return base.OnLoadCoroutine();
         }
         public override void Update()
         {
             base.Update();
-            isFightingUnique = false;
-            foreach (Creature creature in Creature.allActive)
+            if (!WaveSpawner.TryGetRunningInstance(out WaveSpawner spawner))
             {
-                if (creature?.brain?.currentTarget != null && !creature.isPlayer && !creature.isKilled && (creature.brain.currentTarget == Player.local.creature || creature.brain.currentTarget.faction == Player.local.creature.faction))
+                isFightingUnique = false;
+                foreach (Creature creature in Creature.allActive)
                 {
-                    if (creature.GetComponent<XenobladeStats>() != null && creature.GetComponent<XenobladeStats>().isUnique)
+                    if (creature?.brain?.currentTarget != null && !creature.isPlayer && !creature.isKilled && (creature.brain.currentTarget == Player.local.creature || creature.brain.currentTarget.faction == Player.local.creature.faction))
                     {
-                        isFightingUnique = true;
-                        if (uniqueBattleMusic.isPlaying) return;
-                        uniqueBattleMusic.Play();
-                        battleMusic.mute = true;
+                        if (creature.GetComponent<XenobladeStats>() != null && creature.GetComponent<XenobladeStats>().isUnique)
+                        {
+                            isFightingUnique = true;
+                            if (uniqueBattleMusic.isPlaying) return;
+                            uniqueBattleMusic.Play();
+                            battleMusic.mute = true;
+                        }
                     }
                 }
+                if (isFightingUnique || !uniqueBattleMusic.isPlaying) return;
+                uniqueBattleMusic.Stop();
+                battleMusic.mute = false;
             }
-            if (isFightingUnique || !uniqueBattleMusic.isPlaying) return;
-            uniqueBattleMusic.Stop();
-            battleMusic.mute = false;
         }
     }
 }
